@@ -1,6 +1,6 @@
 {
     "prefix": "!",
     "download_path": "/data/discord/",
-    "download_url": "http://library.rileysnyder.org:9000/minio/discord",
+    "download_url": "http://cloud.rileysnyder.org:9000/minio/discord",
     "qbt_url": "http://192.168.0.4:8080/"
   }

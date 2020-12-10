@@ -2,8 +2,11 @@ import os
 import discord
 import requests
 import json
+import logging
 from discord.ext import commands
 from qbittorrent import Client
+
+logging.basicConfig(level=logging.INFO)
 
 
 def load_json(token):
@@ -31,7 +34,7 @@ def get_magnet(search: str) -> discord.Embed:
     try:
         response = requests.get(f'https://apibay.org/q.php?q={search}')
     except requests.ConnectionError:
-        print('Unable to reach apibay.org!')
+        logging.info('Unable to reach apibay.org!')
         return failure
 
     # Top torrent
@@ -116,7 +119,7 @@ class Torrent(commands.Cog):
 
     @commands.Cog.listener()
     async def on_ready(self):
-        print('torrent cog ready')
+        logging.info('torrent cog ready')
     
 
     @commands.command()
@@ -130,14 +133,14 @@ class Torrent(commands.Cog):
         if message[0].lower() == 'stop':
             pause(self.qb)
 
-            print('<torrent> stopped')
+            logging.info('<torrent> stopped')
             await ctx.send('Torrents stopped')
 
         # Start all downloading
         elif message[0].lower() == 'start':
             pause(self.qb)
 
-            print('<torrent> started')
+            logging.info('<torrent> started')
             await ctx.send('Torrents started')
 
         # Search for a torrent via TPB
@@ -145,14 +148,14 @@ class Torrent(commands.Cog):
             search_string = '+'.join(message[1:])
             magnet_embed = get_magnet(search_string)
             
-            print('<torrent> Found: ' + magnet_embed.title)
+            logging.info('<torrent> Found: ' + magnet_embed.title)
             await ctx.send(embed=magnet_embed)
 
         # Download a torrent via magnet link
         elif message[0].lower() == 'download':
             download(self.qb, message[1])
 
-            print('<torrent> Download: ' + message[1])
+            logging.info('<torrent> Download: ' + message[1])
 
         # Get info on downloading torrent
         elif message[0].lower() == 'info':
@@ -161,7 +164,7 @@ class Torrent(commands.Cog):
             if not found:
                 await ctx.send('No matching torrent found')
             else:
-                print('<torrent> Info: ' + found.title)
+                logging.info('<torrent> Info: ' + found.title)
                 await ctx.send(embed=found)
         
         # Get help to download torrent

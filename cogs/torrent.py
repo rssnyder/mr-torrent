@@ -49,6 +49,7 @@ def get_magnet(search: str) -> discord.Embed:
 
     success = discord.Embed(
         title=target.get('name'),
+        url=f'https://thepiratebay.org/description.php?id={target.get("id")}',
         description=desc
     )
 

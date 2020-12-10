@@ -19,92 +19,6 @@ def setup(client):
     client.add_cog(Torrent(client))
 
 
-def get_magnet(search: str) -> discord.Embed:
-    """
-    Get a magnet link for a torrent.
-    Use the backend api for thepiratebay website
-    """
-
-    failure = discord.Embed(
-        title='Unable to find torrent',
-        url=f'https://www.thepiratebay.org/search/{search}',
-        description='No Magnet Found'
-    )
-
-    try:
-        response = requests.get(f'https://apibay.org/q.php?q={search}')
-    except requests.ConnectionError:
-        logging.info('Unable to reach apibay.org!')
-        return failure
-
-    # Top torrent
-    target = json.loads(response.content)[0]
-
-    # No torrent found
-    if target.get('id') == '0':
-        return failure
-
-    # Top torrent magnet link
-    desc = f"Magnet: magnet:?xt=urn:btih:{target.get('info_hash')}&dn={target.get('name')}\n\n"
-    desc += f"Seeders: {target.get('seeders')}\nLeachers: {target.get('leechers')}\n"
-    desc += f"Uploader: {target.get('username')}\n"
-    desc += 'Size: {:.2}GB\n'.format(int(target.get('size')) / 1000000000)
-
-    success = discord.Embed(
-        title=target.get('name'),
-        url=f'https://thepiratebay.org/description.php?id={target.get("id")}',
-        description=desc
-    )
-
-    return success
-
-
-def download(qb, magnet_link: str) -> discord.Embed:
-    """
-    Download a magnet link.
-    Use qbittorrent sdk
-    """
-
-    qb.download_from_link(magnet_link, savepath=load_json('download_path'))
-
-
-def pause(qb):
-    """
-    Pause all downloads
-    """
-
-    qb.pause_all()
-
-
-def resume(qb):
-    """
-    Resume all downloads
-    """
-
-    qb.resume_all()
-
-
-def find(qb, name: str):
-    """
-    Get info on a torrent
-    """
-
-    torrents = qb.torrents()
-
-    for torrent in torrents:
-        if ' '.join(name).lower() in torrent['name'].lower():
-            summary = 'Progress: {:.2%}\n'.format(torrent['progress'])
-            summary += 'Ratio: {:.2}'.format(torrent['ratio'])
-            if str(torrent['ratio'])[:2] == '69':
-                summary += ' **nice**'
-            found = discord.Embed(
-                title=torrent['name'],
-                description=summary
-            )
-
-            return found
-
-
 class Torrent(commands.Cog):
 
     def __init__(self, client):
@@ -131,40 +45,34 @@ class Torrent(commands.Cog):
 
         # Stop all downloading
         if message[0].lower() == 'stop':
-            pause(self.qb)
+            self.pause()
 
-            logging.info('<torrent> stopped')
             await ctx.send('Torrents stopped')
 
         # Start all downloading
         elif message[0].lower() == 'start':
-            pause(self.qb)
+            self.resume()
 
-            logging.info('<torrent> started')
             await ctx.send('Torrents started')
 
         # Search for a torrent via TPB
         elif message[0].lower() == 'search':
             search_string = '+'.join(message[1:])
-            magnet_embed = get_magnet(search_string)
+            magnet_embed = self.get_magnet(search_string)
             
-            logging.info('<torrent> Found: ' + magnet_embed.title)
             await ctx.send(embed=magnet_embed)
 
         # Download a torrent via magnet link
         elif message[0].lower() == 'download':
-            download(self.qb, message[1])
-
-            logging.info('<torrent> Download: ' + message[1])
+            self.download(message[1])
 
         # Get info on downloading torrent
         elif message[0].lower() == 'info':
-            found = find(self.qb, message[1:])
+            found = self.find(message[1:])
 
             if not found:
                 await ctx.send('No matching torrent found')
             else:
-                logging.info('<torrent> Info: ' + found.title)
                 await ctx.send(embed=found)
         
         # Get help to download torrent
@@ -192,3 +100,99 @@ class Torrent(commands.Cog):
             await ctx.send('Invalid command')
         
         # await ctx.send(embed=magnet_embed)
+    
+    def get_magnet(self, search: str) -> discord.Embed:
+        """
+        Get a magnet link for a torrent.
+        Use the backend api for thepiratebay website
+        """
+
+        failure = discord.Embed(
+            title='Unable to find torrent',
+            url=f'https://www.thepiratebay.org/search/{search}',
+            description='No Magnet Found'
+        )
+
+        try:
+            response = requests.get(f'https://apibay.org/q.php?q={search}')
+        except requests.ConnectionError:
+            logging.info('Unable to reach apibay.org!')
+            return failure
+
+        # Top torrent
+        target = json.loads(response.content)[0]
+
+        # No torrent found
+        if target.get('id') == '0':
+            return failure
+
+        # Top torrent info
+        desc = f"Magnet: magnet:?xt=urn:btih:{target.get('info_hash')}&dn={target.get('name')}\n\n"
+        desc += f"Seeders: {target.get('seeders')}\nLeachers: {target.get('leechers')}\n"
+        desc += f"Uploader: {target.get('username')}\n"
+        desc += 'Size: {:.2}GB\n'.format(int(target.get('size')) / 1000000000)
+
+        success = discord.Embed(
+            title=target.get('name'),
+            url=f'https://thepiratebay.org/description.php?id={target.get("id")}',
+            description=desc
+        )
+
+        logging.info('<torrent> Found: ' + target.get('name'))
+        return success
+
+
+    def download(self, magnet_link: str) -> discord.Embed:
+        """
+        Download a magnet link.
+        Use qbittorrent sdk
+        """
+
+        self.qb.download_from_link(magnet_link, savepath=load_json('download_path'))
+        logging.info('<torrent> Downloaded: ' + magnet_link)
+
+
+    def pause(self):
+        """
+        Pause all downloads
+        """
+
+        self.qb.pause_all()
+        logging.info('<torrent> Paused')
+
+
+    def resume(self):
+        """
+        Resume all downloads
+        """
+
+        self.qb.resume_all()
+        logging.info('<torrent> Started')
+
+
+    def find(self, name: str):
+        """
+        Get info on a torrent
+        """
+
+        # Get all current downloads
+        torrents = self.qb.torrents()
+
+        # Find matching torrent
+        for torrent in torrents:
+            if ' '.join(name).lower() in torrent['name'].lower():
+
+                summary = 'Progress: {:.2%}\n'.format(torrent['progress'])
+                summary += 'Ratio: {:.2}'.format(torrent['ratio'])
+
+                # Nice
+                if str(torrent['ratio'])[:2] == '69':
+                    summary += ' **nice**'
+                
+                found = discord.Embed(
+                    title=torrent['name'],
+                    description=summary
+                )
+
+                logging.info('<torrent> Info: ' + torrent['name'])
+                return found

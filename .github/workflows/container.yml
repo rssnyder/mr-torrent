@@ -1,0 +1,53 @@
+name: Build and Publish Container Image
+
+on:
+  push:
+    # tags: [v*.*.*]
+
+jobs:
+  build:
+    name: Build + Push
+    runs-on: ubuntu-latest
+    steps:
+
+    - uses: actions/checkout@v2
+
+    # - name: Get version
+    #   run: echo "IMAGE_TAG=${GITHUB_REF#refs/tags/v}" >> $GITHUB_ENV
+    
+    - name: Get version
+      run: echo "IMAGE_TAG=test" >> $GITHUB_ENV
+
+    - name: Build Docker Image
+      run: docker build -t $IMAGE_TAG .
+      env:
+        IMAGE_TAG: docker.pkg.github.com/${{ GITHUB_REPOSITORY }}:${IMAGE_TAG}
+    
+    - name: Login
+      run: docker login -u publisher -p ${DOCKER_TOKEN} docker.pkg.github.com
+      env:
+        DOCKER_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Push
+      run: docker push $IMAGE_TAG
+      env:
+        IMAGE_TAG: docker.pkg.github.com/${{ GITHUB_REPOSITORY }}:${IMAGE_TAG}
+
+
+
+
+DOCKER_TOKEN=$1
+DOCKER_IMAGE_NAME=$2
+DOCKER_IMAGE_TAG=$3
+EXTRACT_TAG_FROM_GIT_REF=$4
+DOCKERFILE_PATH=$5
+
+if [ $EXTRACT_TAG_FROM_GIT_REF == "true" ]; then
+  DOCKER_IMAGE_TAG=$(echo ${GITHUB_REF} | sed -e "s/refs\/tags\///g")
+fi
+
+DOCKER_IMAGE_FULL_PATH=$(echo docker.pkg.github.com/${GITHUB_REPOSITORY}/${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG} | tr '[:upper:]' '[:lower:]')
+
+docker login -u publisher -p ${DOCKER_TOKEN} docker.pkg.github.com
+docker build -t $DOCKER_IMAGE_FULL_PATH $DOCKERFILE_PATH
+docker push $DOCKER_IMAGE_FULL_PATH

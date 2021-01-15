@@ -78,8 +78,8 @@ class Torrent(commands.Cog):
         # Get help to download torrent
         elif message[0].lower() == 'keys':
             await ctx.send(embed=discord.Embed(
-                title=f'Navigate to {load_json("download_url")}',
-                description=f'Key: discord\nSecret: {os.getenv("MINIO_KEY")}'
+                title=f'Navigate to http://{load_json("download_url")}',
+                description=f'Key: {load_json("download_user")}\nSecret: {os.getenv("MINIO_KEY")}'
             ))
         
         # Get help

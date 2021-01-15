@@ -1,3 +1,4 @@
 discord
 requests
 python-qbittorrent==0.4.2
+minio

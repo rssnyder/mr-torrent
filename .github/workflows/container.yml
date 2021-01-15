@@ -19,9 +19,7 @@ jobs:
       run: echo "IMAGE_TAG=test" >> $GITHUB_ENV
 
     - name: Build Docker Image
-      run: docker build -t $IMAGE_TAG .
-      env:
-        IMAGE_TAG: docker.pkg.github.com/${{ GITHUB_REPOSITORY }}:${IMAGE_TAG}
+      run: docker build -t docker.pkg.github.com/${GITHUB_REPOSITORY}:${IMAGE_TAG} .
     
     - name: Login
       run: docker login -u publisher -p ${DOCKER_TOKEN} docker.pkg.github.com
@@ -29,6 +27,5 @@ jobs:
         DOCKER_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Push
-      run: docker push $IMAGE_TAG
-      env:
-        IMAGE_TAG: docker.pkg.github.com/${{ GITHUB_REPOSITORY }}:${IMAGE_TAG}
+      run: docker push docker.pkg.github.com/${GITHUB_REPOSITORY}:${IMAGE_TAG}
+

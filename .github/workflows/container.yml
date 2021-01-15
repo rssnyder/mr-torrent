@@ -20,9 +20,9 @@ jobs:
       run: docker build -t ghcr.io/${GITHUB_REPOSITORY}:${IMAGE_TAG} .
     
     - name: Login
-      run: docker login -u publisher -p ${DOCKER_TOKEN} ghcr.io
+      run: docker login -u publisher -p ${GHCR_TOKEN} ghcr.io
       env:
-        DOCKER_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
 
     - name: Push
       run: docker push ghcr.io/${GITHUB_REPOSITORY}:${IMAGE_TAG}

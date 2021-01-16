@@ -9,12 +9,6 @@ from qbittorrent import Client
 logging.basicConfig(level=logging.INFO)
 
 
-def load_json(token):
-    with open('./config.json') as f:
-        config = json.load(f)
-    return config.get(token)
-
-
 def setup(client):
     client.add_cog(Torrent(client))
 
@@ -24,7 +18,7 @@ class Torrent(commands.Cog):
     def __init__(self, client):
         self.client = client
 
-        qb = Client(load_json('qbt_url'))
+        qb = Client(os.getenv('QBT_URL'))
 
         qb.login('admin', os.getenv('QBT_KEY'))
 
@@ -78,8 +72,8 @@ class Torrent(commands.Cog):
         # Get help to download torrent
         elif message[0].lower() == 'keys':
             await ctx.send(embed=discord.Embed(
-                title=f'Navigate to http://{load_json("download_url")}',
-                description=f'Key: {load_json("download_user")}\nSecret: {os.getenv("MINIO_KEY")}'
+                title='Navigate to http://library.rileysnyder.org:9768',
+                description=f'Key: discord\nSecret: {os.getenv("MINIO_KEY")}'
             ))
         
         # Get help
@@ -148,7 +142,7 @@ class Torrent(commands.Cog):
         Use qbittorrent sdk
         """
 
-        self.qb.download_from_link(magnet_link, savepath=load_json('download_path'))
+        self.qb.download_from_link(magnet_link, savepath='/discord/')
         logging.info('<torrent> Downloaded: ' + magnet_link)
 
 

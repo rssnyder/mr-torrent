@@ -3,10 +3,6 @@ from discord.ext import commands, tasks
 import json
 import os
 
-def load_json(token):
-    with open('./config.json') as f:
-        config = json.load(f)
-    return config.get(token)
 
 client = discord.Client()
 
@@ -20,7 +16,7 @@ async def on_message(message):
         await message.channel.send(resp)
 
 
-client = commands.Bot(command_prefix=load_json('prefix'), case_insensitive=True)
+client = commands.Bot(command_prefix=os.getenv('DISCORD_BOT_PREFIX'), case_insensitive=True)
 
 for filename in os.listdir('./cogs'):
     if filename.endswith('.py'):

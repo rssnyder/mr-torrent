@@ -11,6 +11,8 @@ vars:
 
 ```
 export DISCORD_BOT_TOKEN=''
+export DISCORD_BOT_PREFIX='!'
 export MINIO_KEY=''
+export QBT_URL=''
 export QBT_KEY=''
 ```

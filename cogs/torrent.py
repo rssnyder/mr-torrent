@@ -150,7 +150,7 @@ class Torrent(commands.Cog):
         )
 
         try:
-            self.qb.download_from_link(magnet_link, savepath='/discord/')
+            self.qb.download_from_link(magnet_link, savepath=os.getenv('QBT_PATH'))
         except requests.exceptions.HTTPError as err:
             logging.error(err.response)
             return failure

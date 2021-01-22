@@ -76,7 +76,7 @@ class Torrent(commands.Cog):
         elif message[0].lower() == 'keys':
             await ctx.send(embed=discord.Embed(
                 title=f'Navigate to {os.getenv("STORAGE_URL")}',
-                description=f'Username: discord\Password: {os.getenv("STORAGE_KEY")}'
+                description=f'Username: discord\nPassword: {os.getenv("STORAGE_KEY")}'
             ))
         
         # Get help

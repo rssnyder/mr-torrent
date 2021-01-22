@@ -5,6 +5,7 @@ import json
 import logging
 from discord.ext import commands
 from qbittorrent import Client
+from qbittorrent import client as qbt
 
 logging.basicConfig(level=logging.INFO)
 
@@ -58,7 +59,9 @@ class Torrent(commands.Cog):
 
         # Download a torrent via magnet link
         elif message[0].lower() == 'download':
-            self.download(message[1])
+            info_embed = self.download(message[1])
+
+            await ctx.send(embed=info_embed)
 
         # Get info on downloading torrent
         elif message[0].lower() == 'info':
@@ -72,8 +75,8 @@ class Torrent(commands.Cog):
         # Get help to download torrent
         elif message[0].lower() == 'keys':
             await ctx.send(embed=discord.Embed(
-                title='Navigate to http://library.rileysnyder.org:9768',
-                description=f'Key: discord\nSecret: {os.getenv("MINIO_KEY")}'
+                title=f'Navigate to {os.getenv("STORAGE_URL")}',
+                description=f'Username: discord\Password: {os.getenv("STORAGE_KEY")}'
             ))
         
         # Get help
@@ -142,8 +145,24 @@ class Torrent(commands.Cog):
         Use qbittorrent sdk
         """
 
-        self.qb.download_from_link(magnet_link, savepath='/discord/')
+        failure = discord.Embed(
+            description='Unable to download torrent.'
+        )
+
+        try:
+            self.qb.download_from_link(magnet_link, savepath='/discord/')
+        except requests.exceptions.HTTPError as err:
+            logging.error(err.response)
+            return failure
+        except qbt.LoginRequired as err:
+            logging.error('Invalid QBT login!')
+            return failure
+
         logging.info('<torrent> Downloaded: ' + magnet_link)
+
+        # Check status of torrent we just added
+        torrent_name = magnet_link.split('dn=')[1].split('&')[0]
+        return self.find([torrent_name])
 
 
     def pause(self):
@@ -164,7 +183,7 @@ class Torrent(commands.Cog):
         logging.info('<torrent> Started')
 
 
-    def find(self, name: str):
+    def find(self, name: list) -> discord.Embed:
         """
         Get info on a torrent
         """
@@ -177,7 +196,10 @@ class Torrent(commands.Cog):
             if ' '.join(name).lower() in torrent['name'].lower():
 
                 summary = 'Progress: {:.2%}\n'.format(torrent['progress'])
-                summary += 'Ratio: {:.2}'.format(torrent['ratio'])
+                if isinstance(torrent['ratio'], int):
+                    summary += f'Ratio: {torrent["ratio"]}'
+                else:
+                    summary += 'Ratio: {:.2}'.format(torrent['ratio'])
 
                 # Nice
                 if str(torrent['ratio'])[:2] == '69':

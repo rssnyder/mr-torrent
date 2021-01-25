@@ -15,4 +15,7 @@ export STORAGE_KEY=''
 export QBT_URL=''
 export QBT_KEY=''
 export QBT_PATH=''
+
+# Optional
+export DISCORD_ACTIVITY=''
 ```

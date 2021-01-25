@@ -22,4 +22,9 @@ for filename in os.listdir('./cogs'):
     if filename.endswith('.py'):
         client.load_extension(f'cogs.{filename[:-3]}')
 
+@client.event
+async def on_ready():
+    activity = os.getenv('DISCORD_ACTIVITY') or 'Minecraft'
+    await client.change_presence(activity=discord.Game(name=activity))
+
 client.run(os.getenv('DISCORD_BOT_TOKEN'))

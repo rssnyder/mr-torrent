@@ -24,9 +24,6 @@ jobs:
     name: Deploy to piku-test
     runs-on: ubuntu-latest
     steps:
-
-      - name: debug
-        run: env
       
       - uses: actions/checkout@master
         with:
@@ -49,6 +46,9 @@ jobs:
               HostName 192.168.100.21
               User piku
               IdentityFile ~/.ssh/id_rsa
+      
+      - name: debug
+        run: ssh -i ~/.ssh/id_rsa piku
     
       - name: Set up piku remote
         run: git remote add piku-test piku@piku:mrtorrent-test

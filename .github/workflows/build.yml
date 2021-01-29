@@ -25,9 +25,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@master
         with:
-          ref: github.head_ref
+          ref: ${{ github.ref }}
 
       - uses: rssnyder/nebula-action-step@0.1.0
         env:

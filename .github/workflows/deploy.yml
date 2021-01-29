@@ -6,7 +6,7 @@ on:
 
 jobs:
   build:
-    name: Build + Push
+    name: Build Docker Image
     runs-on: ubuntu-latest
     steps:
 
@@ -26,3 +26,28 @@ jobs:
 
     - name: Push
       run: docker push ghcr.io/${GITHUB_REPOSITORY}:${IMAGE_TAG}
+  
+  deploy:
+    name: Deploy to piku
+    runs-on: ubuntu-latest
+    steps:
+      
+      - uses: actions/checkout@v2
+
+      - id: Set up nebula
+        uses: rssnyder/nebula-action-step@0.1.0
+        env:
+          NEBULA_CA_CRT: ${{ secrets.NEBULA_CA_CRT }}
+          NEBULA_NODE_CONF: ${{ secrets.NEBULA_NODE_CONF }}
+          NEBULA_NODE_CRT: ${{ secrets.NEBULA_NODE_CRT }}
+          NEBULA_NODE_KEY: ${{ secrets.NEBULA_NODE_KEY }}
+
+      - uses: LuisEnMarroquin/setup-ssh-action@v1.8
+        with:
+          SSHKEY: ${{ secrets.PIKU_DEPLOY_KEY }}
+    
+      - name: Set up piku remote
+        run: git remote add piku piku@192.168.100.21:mrtorrent
+      
+      - name: Push to piku
+        run: git push piku master

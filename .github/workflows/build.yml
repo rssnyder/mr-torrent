@@ -34,9 +34,11 @@ jobs:
           NEBULA_NODE_CRT: ${{ secrets.NEBULA_NODE_CRT }}
           NEBULA_NODE_KEY: ${{ secrets.NEBULA_NODE_KEY }}
 
-      - uses: LuisEnMarroquin/setup-ssh-action@v1.8
+      - name: Install SSH key
+        uses: shimataro/ssh-key-action@v2
         with:
-          SSHKEY: ${{ secrets.PIKU_DEPLOY_KEY }}
+          key: ${{ secrets.PIKU_DEPLOY_KEY }}
+          known_hosts: 192.168.100.21
     
       - name: Set up piku remote
         run: git remote add piku piku@192.168.100.21:mrtorrent-test

@@ -42,4 +42,4 @@ jobs:
         run: git remote add piku piku@192.168.100.21:mrtorrent-test
       
       - name: Push to piku
-        run: git push piku master
+        run: git push piku $GITHUB_REF

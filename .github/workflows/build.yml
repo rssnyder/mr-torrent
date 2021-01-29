@@ -44,9 +44,14 @@ jobs:
         with:
           key: ${{ secrets.PIKU_DEPLOY_KEY }}
           known_hosts: 192.168.100.21
+          config: |
+            Host piku
+              HostName 192.168.100.21
+              User piku
+              IdentityFile ~/.ssh/id_rsa
     
       - name: Set up piku remote
-        run: git remote add piku-test piku@192.168.100.21:mrtorrent-test
+        run: git remote add piku-test piku@piku:mrtorrent-test
       
       - name: Push to piku
         run: git push piku-test ${{ github.head_ref }}

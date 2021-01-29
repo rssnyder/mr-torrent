@@ -26,6 +26,8 @@ jobs:
     steps:
       
       - uses: actions/checkout@v2
+        with:
+          ref: ${{ GITHUB_HEAD_REF }}
 
       - uses: rssnyder/nebula-action-step@0.1.0
         env:
@@ -41,7 +43,7 @@ jobs:
           known_hosts: 192.168.100.21
     
       - name: Set up piku remote
-        run: git remote add piku piku@192.168.100.21:mrtorrent-test
+        run: git remote add piku-test piku@192.168.100.21:mrtorrent-test
       
       - name: Push to piku
-        run: git push piku HEAD:$GITHUB_HEAD_REF
+        run: git push piku $GITHUB_HEAD_REF
